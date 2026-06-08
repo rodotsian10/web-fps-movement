@@ -568,6 +568,8 @@ const settingsDefs = [
     { key: 'GRAPPLE_SPEED',   label: '속도',       min:20, max:120, step:1 },
     { key: 'GRAPPLE_MAX_DIST',label: '최대거리',   min:30, max:250, step:5 },
     { key: 'GRAPPLE_COOLDOWN',label: '쿨타임',     min:0.5,max:5,   step:0.1 },
+    { key: 'GRAPPLE_MAX_HOLD_TIME', label: '최대유지시간', min:0.1, max:3.0, step:0.05 },
+    { key: 'GRAPPLE_TIME_LIMIT_ENABLED', label: '시간제한 사용', type: 'checkbox' },
   ]},
 
   { group: '📷 카메라', items: [
@@ -585,20 +587,34 @@ settingsDefs.forEach(group => {
   group.items.forEach(item => {
     const row = document.createElement('div');
     row.className = 'setting-row';
-    const val = document.createElement('span');
-    val.className = 'setting-val';
-    val.textContent = C[item.key];
-    const input = document.createElement('input');
-    input.type = 'range'; input.min = item.min; input.max = item.max;
-    input.step = item.step; input.value = C[item.key];
-    input.addEventListener('input', () => {
-      C[item.key] = parseFloat(input.value);
-      movCtrl.C[item.key] = C[item.key];
-      val.textContent = C[item.key];
-    });
     const label = document.createElement('label');
     label.textContent = item.label;
-    row.appendChild(label); row.appendChild(input); row.appendChild(val);
+    row.appendChild(label);
+
+    if (item.type === 'checkbox') {
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = !!C[item.key];
+      input.addEventListener('change', () => {
+        C[item.key] = input.checked;
+        movCtrl.C[item.key] = C[item.key];
+      });
+      row.appendChild(input);
+    } else {
+      const val = document.createElement('span');
+      val.className = 'setting-val';
+      val.textContent = C[item.key];
+      const input = document.createElement('input');
+      input.type = 'range'; input.min = item.min; input.max = item.max;
+      input.step = item.step; input.value = C[item.key];
+      input.addEventListener('input', () => {
+        C[item.key] = parseFloat(input.value);
+        movCtrl.C[item.key] = C[item.key];
+        val.textContent = C[item.key];
+      });
+      row.appendChild(input);
+      row.appendChild(val);
+    }
     g.appendChild(row);
   });
   content.appendChild(g);

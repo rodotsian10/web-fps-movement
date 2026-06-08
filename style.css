@@ -344,6 +344,9 @@ body {
 .setting-row input[type="range"] {
   width: 85px; accent-color: var(--accent); flex-shrink: 0;
 }
+.setting-row input[type="checkbox"] {
+  width: 14px; height: 14px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer;
+}
 .setting-val {
   font-family: var(--mono); font-size: 0.66rem;
   color: var(--accent); width: 34px; text-align: right; flex-shrink: 0;

@@ -33,6 +33,7 @@ export const CONSTANTS = {
   JUMP_BUFFER:          0.15,
 
   // ── Slide
+  SLIDE_BUFFER:         0.12,   // 공중에서 C키 눌러도 착지 직후 슬라이드 가능한 버퍼 시간
   SLIDE_COOLDOWN:       1.2,
   SLIDE_ENTRY_BOOST:    1.15,    // 15% speed boost on slide entry
   SLIDE_FRICTION:       0.25,    // very low friction for momentum preservation
@@ -56,6 +57,8 @@ export const CONSTANTS = {
   GRAPPLE_ARRIVE_DIST:  3.0,
   GRAPPLE_JUMP_BOOST:   1.3,
   GRAPPLE_ARC:          0.25,
+  GRAPPLE_MAX_HOLD_TIME: 0.5,   // 그래플 최대 유지시간 (초)
+  GRAPPLE_TIME_LIMIT_ENABLED: true, // 그래플 시간 제한 on/off
 
   // ── Camera
   BASE_FOV:             75,
@@ -124,6 +127,7 @@ export class MovementController {
     // Slide
     this.slideTime = 0;
     this.slideCooldown = 0;
+    this.slideBuffer = 0;   // 공중 slide 입력 버퍼
 
     // Dash
     this.dashTimer = 0;
@@ -135,6 +139,7 @@ export class MovementController {
     this.isGrappling     = false;
     this.grappleTarget   = new THREE.Vector3();
     this.grappleDir      = new THREE.Vector3();
+    this.grappleHoldTimer = 0;  // 그래플 유지시간 추적
 
     // Landing Recovery
     this.landingDecelTimer = 0;
@@ -231,6 +236,7 @@ export class MovementController {
     if (this.comboTimeout    > 0) this.comboTimeout    -= dt;
     else { this.comboStack = []; this._comboReported = false; }
     if (this.slideCooldown   > 0) this.slideCooldown   -= dt;
+    if (this.slideBuffer     > 0) this.slideBuffer     -= dt;
     if (this.dashCooldown    > 0) this.dashCooldown    -= dt;
     if (this.dashTimer       > 0) this.dashTimer       -= dt;
     if (this.landingDecelTimer > 0) this.landingDecelTimer -= dt;
@@ -245,6 +251,11 @@ export class MovementController {
     if (this._jumpPressed) {
       this.jumpBufferTimer = C.JUMP_BUFFER;
       this._jumpPressed = false;
+    }
+
+    // Slide buffer (공중에서 C 눌렀을 때 착지 직후 슬라이드 가능)
+    if (this._slidePressedThisFrame) {
+      this.slideBuffer = C.SLIDE_BUFFER;
     }
 
     // Ceiling collision
@@ -337,6 +348,7 @@ export class MovementController {
       if (this._grappleDown && !this.isGrappling && this.grappleCooldown <= 0
           && grappleRayResult && grappleRayResult.hit) {
         this.isGrappling = true;
+        this.grappleHoldTimer = 0; // 유지시간 초기화
         this.grappleTarget.set(
           grappleRayResult.point.x,
           grappleRayResult.point.y,
@@ -348,6 +360,8 @@ export class MovementController {
 
       if (this.isGrappling) {
         this.wasGrappleOrDash = true;
+        this.grappleHoldTimer += dt; // 유지시간 누적
+
         const px = this.grappleTarget.x;
         const py = this.grappleTarget.y;
         const pz = this.grappleTarget.z;
@@ -358,7 +372,11 @@ export class MovementController {
         );
         const dist = this.grappleDir.length();
 
-        if (dist < C.GRAPPLE_ARRIVE_DIST || (grounded && dist < C.GRAPPLE_ARRIVE_DIST * 2)) {
+        // 그래플 시간 제한 체크
+        const timeLimitReached = C.GRAPPLE_TIME_LIMIT_ENABLED
+          && this.grappleHoldTimer >= C.GRAPPLE_MAX_HOLD_TIME;
+
+        if (dist < C.GRAPPLE_ARRIVE_DIST || (grounded && dist < C.GRAPPLE_ARRIVE_DIST * 2) || timeLimitReached) {
           this.isGrappling = false;
         } else {
           this.grappleDir.divideScalar(dist);
@@ -434,30 +452,23 @@ export class MovementController {
           // Cancel slide instantly -> Sprint or Walk
           this.state = this.keys.sprint ? STATE.SPRINT : STATE.WALK;
           this.slideCooldown = C.SLIDE_COOLDOWN;
+          this.slideBuffer = 0; // Clear buffer so we don't re-trigger slide
         } else if (this.slideTime > C.SLIDE_DURATION || hs2 < C.SLIDE_SPEED_MIN) {
           // Natural slide end -> Sprint or Walk
           this.state = (this.keys.sprint && hasInput) ? STATE.SPRINT : STATE.WALK;
           this.slideCooldown = C.SLIDE_COOLDOWN;
         }
       } else {
-        const slidePressed = this._slidePressedThisFrame;
         this._slidePressedThisFrame = false;
 
-        // Ground states
-        if (slidePressed) {
-          console.log("[SLIDE INPUT PRESSED]", {
-            "Current movement state": this.state,
-            "Grounded state": grounded,
-            "Sprint state": (this.state === STATE.SPRINT),
-            "Slide input state": slidePressed,
-            "hasInput": hasInput,
-            "slideCooldown": this.slideCooldown,
-            "keys.sprint": this.keys.sprint
-          });
+        // Ground states — slide buffer도 체크 (공중에서 눌렀어도 착지 직후 슬라이드 가능)
+        const slideTriggered = this.slideBuffer > 0;
+        if (slideTriggered) {
           // Slide trigger conditions: grounded, sprinting, wishDir input required, and cooldown ready
-          if (grounded && (this.state === STATE.SPRINT || this.keys.sprint) && hasInput && this.slideCooldown <= 0) {
+          if ((this.state === STATE.SPRINT || this.keys.sprint) && hasInput && this.slideCooldown <= 0) {
             this.state = STATE.SLIDE;
             this.slideTime = 0;
+            this.slideBuffer = 0; // 버퍼 소모
             
             // Speed boost: 1.15x current speed
             const currentSp = hSpeed(this.velocity);
