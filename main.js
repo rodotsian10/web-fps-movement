@@ -562,6 +562,7 @@ const settingsDefs = [
     { key: 'SLIDE_ENTRY_BOOST',label: '진입 부스트',min:1,  max:3,   step:0.05 },
     { key: 'SLIDE_FRICTION',   label: '마찰',      min:0.1,max:5,   step:0.05 },
     { key: 'SLIDE_CANCEL_VERT', label:'캔슬 수직',  min:1,  max:4,   step:0.05 },
+    { key: 'SLIDE_MAX_SPEED',   label: '최고속력',  min:10, max:60,  step:0.5 },
   ]},
 
   { group: '🪝 그래플', items: [

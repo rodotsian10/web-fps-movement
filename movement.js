@@ -38,7 +38,7 @@ export const CONSTANTS = {
   SLIDE_ENTRY_BOOST:    1.15,    // 15% speed boost on slide entry
   SLIDE_FRICTION:       0.25,    // very low friction for momentum preservation
   SLIDE_SPEED_MIN:      9.0,     // end slide when speed drops below WALK_SPEED (9.0)
-  SLIDE_MAX_SPEED:      52.5,
+  SLIDE_MAX_SPEED:      19.0,
   SLIDE_DURATION:       0.8,
 
   // ── Slide Cancel (slide → jump)
@@ -53,7 +53,7 @@ export const CONSTANTS = {
   // ── Grapple Hook
   GRAPPLE_SPEED:        35.0,
   GRAPPLE_MAX_DIST:     120.0,
-  GRAPPLE_COOLDOWN:     5.0,
+  GRAPPLE_COOLDOWN:     8.0,
   GRAPPLE_ARRIVE_DIST:  3.0,
   GRAPPLE_JUMP_BOOST:   1.3,
   GRAPPLE_ARC:          0.25,
@@ -133,6 +133,8 @@ export class MovementController {
     this.dashTimer = 0;
     this.dashCooldown = 0;
     this.dashDir = new THREE.Vector3();
+    this.wasDashing = false;
+    this.dashDecayTimer = 0;
 
     // Grapple
     this.grappleCooldown = 0;
@@ -140,6 +142,8 @@ export class MovementController {
     this.grappleTarget   = new THREE.Vector3();
     this.grappleDir      = new THREE.Vector3();
     this.grappleHoldTimer = 0;  // 그래플 유지시간 추적
+    this.wasGrappling     = false;
+    this.grappleDecayTimer = 0;
 
     // Landing Recovery
     this.landingDecelTimer = 0;
@@ -230,6 +234,36 @@ export class MovementController {
     const justLanded     = grounded && !this.wasGrounded;
     const justLeftGround = !grounded && this.wasGrounded;
 
+    // ── Grapple speed decay (smoothly decay grapple speed to sprint speed over 5s) ──
+    if (this.isGrappling) {
+      this.grappleDecayTimer = 0;
+    }
+    if (this.grappleDecayTimer > 0) {
+      this.grappleDecayTimer -= dt;
+      const hs = hSpeed(this.velocity);
+      if (hs > C.SPRINT_SPEED) {
+        const decayRate = (hs - C.SPRINT_SPEED) / Math.max(this.grappleDecayTimer, 0.1);
+        const newSpeed = Math.max(hs - decayRate * dt, C.SPRINT_SPEED);
+        const ratio = newSpeed / hs;
+        this.velocity.x *= ratio;
+        this.velocity.z *= ratio;
+      }
+    }
+    // ── Dash speed decay (smoothly decay dash speed to sprint speed over 2s) ──
+    if (this.state === STATE.DASH) {
+      this.dashDecayTimer = 0;
+    }
+    if (this.dashDecayTimer > 0) {
+      this.dashDecayTimer -= dt;
+      const hs = hSpeed(this.velocity);
+      if (hs > C.SPRINT_SPEED) {
+        const decayRate = (hs - C.SPRINT_SPEED) / Math.max(this.dashDecayTimer, 0.1);
+        const newSpeed = Math.max(hs - decayRate * dt, C.SPRINT_SPEED);
+        const ratio = newSpeed / hs;
+        this.velocity.x *= ratio;
+        this.velocity.z *= ratio;
+      }
+    }
     // ── Timers ──
     if (this.grappleCooldown > 0) this.grappleCooldown -= dt;
     if (this.jumpBufferTimer > 0) this.jumpBufferTimer -= dt;
@@ -470,9 +504,12 @@ export class MovementController {
             this.slideTime = 0;
             this.slideBuffer = 0; // 버퍼 소모
             
-            // Speed boost: 1.15x current speed
+            // Speed boost: 1.15x current speed (capped at SLIDE_MAX_SPEED)
             const currentSp = hSpeed(this.velocity);
-            const slideSp = Math.max(currentSp * C.SLIDE_ENTRY_BOOST, C.SPRINT_SPEED * C.SLIDE_ENTRY_BOOST);
+            const slideSp = Math.min(
+              Math.max(currentSp * C.SLIDE_ENTRY_BOOST, C.SPRINT_SPEED * C.SLIDE_ENTRY_BOOST),
+              C.SLIDE_MAX_SPEED
+            );
             this.velocity.x = wishDir.x * slideSp;
             this.velocity.z = wishDir.z * slideSp;
             this.pushCombo('SLIDE');
@@ -639,6 +676,20 @@ export class MovementController {
         this._logSlideFrame = false;
       }
     }
+
+    // ── Grapple End Detection ──
+    const justEndedGrapple = !this.isGrappling && this.wasGrappling;
+    if (justEndedGrapple) {
+      this.grappleDecayTimer = 2.0;
+    }
+    this.wasGrappling = this.isGrappling;
+
+    // ── Dash End Detection ──
+    const justEndedDash = (this.state !== STATE.DASH) && this.wasDashing;
+    if (justEndedDash) {
+      this.dashDecayTimer = 0.8;
+    }
+    this.wasDashing = (this.state === STATE.DASH);
 
     return {
       velocity:      this.velocity,
