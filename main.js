@@ -567,9 +567,14 @@ const settingsDefs = [
   { group: '🪝 그래플', items: [
     { key: 'GRAPPLE_SPEED',   label: '속도',       min:20, max:120, step:1 },
     { key: 'GRAPPLE_MAX_DIST',label: '최대거리',   min:30, max:250, step:5 },
-    { key: 'GRAPPLE_COOLDOWN',label: '쿨타임',     min:0.5,max:5,   step:0.1 },
+    { key: 'GRAPPLE_COOLDOWN',label: '쿨타임',     min:0.5,max:10,  step:0.1 },
     { key: 'GRAPPLE_MAX_HOLD_TIME', label: '최대유지시간', min:0.1, max:3.0, step:0.05 },
     { key: 'GRAPPLE_TIME_LIMIT_ENABLED', label: '시간제한 사용', type: 'checkbox' },
+  ]},
+
+  { group: '💨 대쉬', items: [
+    { key: 'DASH_SPEED',      label: '속도',       min:10, max:60,  step:1 },
+    { key: 'DASH_COOLDOWN',   label: '쿨타임',     min:0.5,max:10,  step:0.1 },
   ]},
 
   { group: '📷 카메라', items: [

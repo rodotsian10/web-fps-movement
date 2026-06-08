@@ -94,6 +94,23 @@ export class PhysicsWorld {
       }
     }
 
+    // Check grounding with a tiny downward tolerance to prevent jittering on flat surfaces
+    if (!grounded && dy <= 0.001) {
+      // Shrink horizontally to avoid wall-hugging false positives
+      const checkDown = new AABB(box.cx, box.cy - 0.02, box.cz, box.hw - 0.02, box.hh, box.hd - 0.02);
+      for (const col of this.colliders) {
+        if (checkDown.overlaps(col)) {
+          if ((box.cy - box.hh) >= (col.maxY - 0.1)) {
+            grounded = true;
+            if (box.cy - box.hh < col.maxY + 0.02) {
+              box.cy = col.maxY + box.hh;
+            }
+            break;
+          }
+        }
+      }
+    }
+
     // Combine wall normals
     let wallNormal = wallNormalX || wallNormalZ;
 

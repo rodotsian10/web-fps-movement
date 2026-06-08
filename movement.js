@@ -48,12 +48,12 @@ export const CONSTANTS = {
   // ── Dash
   DASH_SPEED:           26.0,
   DASH_DURATION:        0.15,
-  DASH_COOLDOWN:        1.2,
+  DASH_COOLDOWN:        3.0,
 
   // ── Grapple Hook
   GRAPPLE_SPEED:        35.0,
   GRAPPLE_MAX_DIST:     120.0,
-  GRAPPLE_COOLDOWN:     1.8,
+  GRAPPLE_COOLDOWN:     5.0,
   GRAPPLE_ARRIVE_DIST:  3.0,
   GRAPPLE_JUMP_BOOST:   1.3,
   GRAPPLE_ARC:          0.25,
@@ -426,7 +426,7 @@ export class MovementController {
           this.velocity.y = C.JUMP_FORCE * C.SLIDE_CANCEL_VERT;
           didSlideCancel = true;
           this.pushCombo('SLIDECANCEL');
-          this.slideCooldown = C.SLIDE_COOLDOWN;
+          this.slideCooldown = 0; // Reset slide cooldown on cancel
         } else {
           // Normal jump
           this.velocity.y = C.JUMP_FORCE;
