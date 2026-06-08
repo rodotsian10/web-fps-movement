@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HyperShot Movement Sandbox</title>
+  <meta name="description" content="Roblox HyperShot 스타일 FPS Movement Sandbox — 그래플, 슬라이드 캔슬, 대시, 물리 번홉" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<!-- Effects -->
+<div id="vignette"></div>
+<div id="speedlines"></div>
+<div id="landing-flash"></div>
+
+<!-- Crosshair + Grapple reticle -->
+<div id="crosshair">
+  <div id="hitmarker"></div>
+</div>
+<div id="grapple-reticle"></div>
+
+<!-- Lock Screen -->
+<div id="lock-screen">
+  <div class="lock-title">RIVALS ARENA</div>
+  <div class="lock-subtitle">Training Sandbox</div>
+  <button class="lock-btn" id="lock-btn">🎮 클릭하여 시작</button>
+
+  <div class="lock-controls">
+    <div class="ctrl-item"><span class="ctrl-key">WASD</span> 이동</div>
+    <div class="ctrl-item"><span class="ctrl-key">Shift</span> 달리기</div>
+    <div class="ctrl-item"><span class="ctrl-key">Space</span> 점프</div>
+    <div class="ctrl-item"><span class="ctrl-key">C</span> 슬라이드</div>
+    <div class="ctrl-item"><span class="ctrl-key">Q</span> 대쉬</div>
+    <div class="ctrl-item"><span class="ctrl-key">E</span> 그래플</div>
+    <div class="ctrl-item" style="grid-column:1/-1; text-align:center; color:#8b98b0;">
+      <span class="ctrl-key">좌클릭</span> 사격 &nbsp;|&nbsp; <span class="ctrl-key">우클릭</span> 조준 &nbsp;|&nbsp; <span class="ctrl-key">R</span> 재장전
+    </div>
+    <div class="ctrl-item" style="grid-column:1/-1; text-align:center; color:#8b98b0;">
+      콤보: 그래플→대쉬 | 대쉬→슬라이드캔슬 | 슬라이드캔슬 점프
+    </div>
+    <div class="ctrl-item" style="grid-column:1/-1; text-align:center; color:#506080; font-size:0.65rem;">
+      T = 리셋 &nbsp;|&nbsp; Tab = 수치 조절 &nbsp;|&nbsp; ESC = 마우스 해제
+    </div>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <!-- Ammo Display -->
+  <div id="ammo-display">
+    <div id="ammo-nums"><span id="ammo-clip">30</span><span id="ammo-slash">/</span><span id="ammo-reserve">120</span></div>
+    <div id="reload-indicator">RELOADING</div>
+  </div>
+
+  <!-- Speed -->
+  <div id="speed-display">
+    <div id="speed-number">0.0</div>
+    <div id="speed-label">m/s</div>
+    <div id="speed-bar-wrap">
+      <div id="speed-bar"></div>
+    </div>
+  </div>
+
+  <!-- State pills -->
+  <div id="state-badge">
+    <div id="pill-sprint"      class="state-pill sprint">⚡ Sprint</div>
+    <div id="pill-slide"       class="state-pill slide">🎿 Slide</div>
+    <div id="pill-air"         class="state-pill air">✈ Air</div>
+    <div id="pill-dash"        class="state-pill dash">💨 Dash</div>
+    <div id="pill-grapple"     class="state-pill grapple">🪝 Grapple</div>
+    <div id="pill-slidecancel" class="state-pill slidecancel">🚀 Slide Cancel</div>
+  </div>
+
+  <!-- Ability icons (bottom right) -->
+  <div id="ability-bar">
+    <div class="ability-icon" id="dash-icon">
+      <div class="cd-bar"></div>
+      <span class="ability-key">Q</span>
+      <span class="ability-label">대쉬</span>
+    </div>
+    <div class="ability-icon" id="grapple-icon">
+      <div class="cd-bar"></div>
+      <span class="ability-key">E</span>
+      <span class="ability-label">그래플</span>
+    </div>
+  </div>
+
+  <!-- Combo -->
+  <div id="combo-display">
+    <div id="combo-text"></div>
+  </div>
+
+  <!-- Notifications -->
+  <div id="notifications"></div>
+</div>
+
+<!-- Settings -->
+<div id="settings">
+  <h2>⚙ 수치 튜닝</h2>
+  <div id="settings-content"></div>
+  <div class="tab-hint">Tab – 패널 토글 &nbsp;|&nbsp; T – 리셋</div>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
