@@ -38,17 +38,17 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x040812);
-scene.fog = new THREE.FogExp2(0x040812, 0.012);
+scene.background = new THREE.Color(0x1a2538);
+scene.fog = new THREE.FogExp2(0x1a2538, 0.008);
 
 addGameListener(window, 'resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // ── Lighting ─────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0x1a2040, 1.4));
+scene.add(new THREE.AmbientLight(0x3a4565, 3.5));
 
-const sun = new THREE.DirectionalLight(0xffffff, 2.0);
+const sun = new THREE.DirectionalLight(0xffffff, 4.0);
 sun.position.set(30, 80, 20);
 sun.castShadow = true;
 sun.shadow.camera.near = 0.5;
@@ -76,14 +76,14 @@ scene.add(sun);
 const M = (c, e = 0, ei = 0, r = 0.5, m = 0.3) =>
   new THREE.MeshStandardMaterial({ color: c, emissive: e, emissiveIntensity: ei, roughness: r, metalness: m });
 
-const matFloor    = M(0x0a0f1e, 0x0a0f1e, 0.08, 0.85, 0.1);
-const matBox      = M(0x151d30, 0x001022, 0.12, 0.65, 0.4);
-const matCyan     = M(0x002838, 0x00f0ff, 0.3,  0.5,  0.6);
-const matPurple   = M(0x160a30, 0x7c3aed, 0.35, 0.5,  0.5);
-const matOrange   = M(0x2a1200, 0xff6b35, 0.3,  0.5,  0.4);
-const matGreen    = M(0x0a2a0a, 0x22c55e, 0.5,  0.4,  0.5);
-const matWall     = M(0x101828, 0x001833, 0.15, 0.6,  0.5);
-const matWallGlow = M(0x001a28, 0x00f0ff, 0.4,  0.4,  0.7);
+const matFloor    = M(0x182438, 0x0a0f1e, 0.1, 0.85, 0.1);
+const matBox      = M(0x283855, 0x001022, 0.15, 0.65, 0.4);
+const matCyan     = M(0x004560, 0x00f0ff, 0.4,  0.5,  0.6);
+const matPurple   = M(0x2a1a55, 0x7c3aed, 0.45, 0.5,  0.5);
+const matOrange   = M(0x4a2200, 0xff6b35, 0.4,  0.5,  0.4);
+const matGreen    = M(0x1a451a, 0x22c55e, 0.6,  0.4,  0.5);
+const matWall     = M(0x202c45, 0x001833, 0.2, 0.6,  0.5);
+const matWallGlow = M(0x003350, 0x00f0ff, 0.5,  0.4,  0.7);
 const matPad      = M(0x001414, 0x00f0ff, 0.6,  0.3,  0.8);
 
 // Grid
@@ -265,6 +265,16 @@ new Target(75, 3.5, 8);
 new Target(65, 4.0, 15);
 new Target(90, 5.0, -12);
 new Target(95, 6.0, 10);
+new Target(95, 6.0, 5);
+new Target(95, 6.0, 6);
+new Target(95, 6.0, 7);
+new Target(95, 6.0, 8);
+new Target(95, 6.0, 9);
+new Target(95, 6.0, 11);
+new Target(95, 6.0, 12);
+new Target(95, 6.0, 13);
+new Target(95, 6.0, 14);
+new Target(95, 6.0, 15);
 
 // 3. Movement Playground (North: X = 0, Z = -70)
 addBox(0, 0.05, -70, 60, 0.1, 60, matFloor, false);
