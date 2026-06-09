@@ -197,6 +197,38 @@ export class PhysicsWorld {
     return closest;
   }
 
+  raycastAll(ox, oy, oz, dx, dy, dz, maxDist = 200) {
+    const hits = [];
+
+    for (const col of this.colliders) {
+      const t = this._rayAABB(ox, oy, oz, dx, dy, dz, col);
+      if (t !== null && t > 0 && t < maxDist) {
+        const px = ox + dx * t;
+        const py = oy + dy * t;
+        const pz = oz + dz * t;
+
+        const eps = 0.01;
+        let nx = 0, ny = 0, nz = 0;
+        if (Math.abs(px - col.minX) < eps) nx = -1;
+        else if (Math.abs(px - col.maxX) < eps) nx = 1;
+        else if (Math.abs(py - col.minY) < eps) ny = -1;
+        else if (Math.abs(py - col.maxY) < eps) ny = 1;
+        else if (Math.abs(pz - col.minZ) < eps) nz = -1;
+        else if (Math.abs(pz - col.maxZ) < eps) nz = 1;
+
+        hits.push({
+          hit: true,
+          point: { x: px, y: py, z: pz },
+          distance: t,
+          col,
+          normal: { x: nx, y: ny, z: nz },
+        });
+      }
+    }
+    hits.sort((a, b) => a.distance - b.distance);
+    return hits;
+  }
+
   _rayAABB(ox, oy, oz, dx, dy, dz, box) {
     let tmin = -Infinity, tmax = Infinity;
 

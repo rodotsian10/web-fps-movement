@@ -200,24 +200,39 @@ class Target {
   }
 }
 
-function spawnTracer(start, end) {
+function spawnTracer(start, end, type = 'RIFLE') {
   if (typeof window.shotSpawnCount !== 'undefined') {
     window.shotSpawnCount++;
     if (!window.shotLoopIds) window.shotLoopIds = new Set();
     window.shotLoopIds.add(myLoopId);
   }
   const geo = new THREE.BufferGeometry().setFromPoints([start, end]);
+  
+  let color = 0x00f0ff;
+  let opacity = 0.8;
+  let maxLife = 0.15;
+
+  if (type === 'SNIPER') {
+    color = 0xff6b35;
+    opacity = 0.95;
+    maxLife = 0.25;
+  } else if (type === 'SHOTGUN') {
+    color = 0xfacc15;
+    opacity = 0.85;
+    maxLife = 0.12;
+  }
+
   const mat = new THREE.LineBasicMaterial({
-    color: 0x00f0ff,
+    color: color,
     transparent: true,
-    opacity: 0.8,
+    opacity: opacity,
   });
   const line = new THREE.Line(geo, mat);
   scene.add(line);
   tracers.push({
     line,
-    maxLife: 0.15,
-    life: 0.15
+    maxLife: maxLife,
+    life: maxLife
   });
 }
 
@@ -433,10 +448,50 @@ function updateHUD(result, hs, finalPhys) {
   if (result.didSlideCancel)  { setActive(pillSlideCancel, true); setTimeout(() => setActive(pillSlideCancel, false), 1000); }
 
   // Ammo display
-  if (hudAmmoClip) hudAmmoClip.textContent = finalPhys.ammo;
-  if (hudAmmoReserve) hudAmmoReserve.textContent = finalPhys.ammoReserve;
+  if (finalPhys.type === 'KARAMBIT') {
+    if (hudAmmoClip) hudAmmoClip.textContent = '∞';
+    if (hudAmmoReserve) hudAmmoReserve.textContent = '∞';
+  } else if (finalPhys.type === 'PISTOLS') {
+    if (hudAmmoClip) hudAmmoClip.textContent = finalPhys.ammo;
+    if (hudAmmoReserve) hudAmmoReserve.textContent = '∞';
+  } else {
+    if (hudAmmoClip) hudAmmoClip.textContent = finalPhys.ammo;
+    if (hudAmmoReserve) hudAmmoReserve.textContent = finalPhys.ammoReserve;
+  }
   if (hudAmmoDisplay) {
     hudAmmoDisplay.classList.toggle('reloading', finalPhys.isReloading);
+  }
+
+  // Weapon label
+  const hudWeaponLabel = document.getElementById('weapon-label');
+  if (hudWeaponLabel) {
+    let name = 'ASSAULT RIFLE';
+    let color = 'rgba(255, 255, 255, 0.4)';
+    if (finalPhys.type === 'SNIPER') {
+      name = 'SNIPER RIFLE';
+      color = '#ff6b35';
+    } else if (finalPhys.type === 'PISTOLS') {
+      name = 'DUAL PISTOLS';
+      color = '#22c55e';
+    } else if (finalPhys.type === 'SHOTGUN') {
+      name = 'SHOTGUN';
+      color = '#facc15';
+    } else if (finalPhys.type === 'KARAMBIT') {
+      name = 'KARAMBIT KNIFE';
+      color = '#7c3aed';
+    } else if (finalPhys.type === 'FISTS') {
+      name = 'ROBLOX FISTS';
+      color = '#ff0055';
+    }
+    hudWeaponLabel.textContent = name;
+    hudWeaponLabel.style.color = color;
+  }
+
+  // Sniper Scope Overlay
+  const scopeOverlay = document.getElementById('sniper-scope-overlay');
+  if (scopeOverlay) {
+    const isSniperAiming = finalPhys.type === 'SNIPER' && finalPhys.isAiming;
+    scopeOverlay.classList.toggle('active', isSniperAiming);
   }
 
   // Combo
@@ -446,28 +501,96 @@ function updateHUD(result, hs, finalPhys) {
   }
 }
 
-// ── Pointer Lock ─────────────────────────────────────────────
+// ── Pointer Lock & Weapon Menu ───────────────────────────────
 const lockScreen = document.getElementById('lock-screen');
+const weaponMenu = document.getElementById('weapon-menu');
+let weaponMenuOpen = false;
+
+function toggleWeaponMenu(open) {
+  if (open === undefined) open = !weaponMenuOpen;
+  weaponMenuOpen = open;
+  
+  if (weaponMenuOpen) {
+    if (settingsOpen) {
+      settingsOpen = false;
+      settingsPanel.classList.remove('visible');
+    }
+    weaponMenu.classList.remove('hidden');
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+    lockScreen.classList.add('hidden');
+    
+    // Highlight the active card and equipped Primary & Secondary
+    const cards = weaponMenu.querySelectorAll('.weapon-card');
+    const activeType = player.weapon.type;
+    const equippedPrimary = player.equippedPrimary;
+    const equippedSecondary = player.equippedSecondary;
+    const equippedMelee = player.equippedMelee;
+    cards.forEach(card => {
+      const type = card.getAttribute('data-weapon');
+      card.classList.toggle('active', type === activeType);
+      if (type === 'RIFLE' || type === 'SNIPER') {
+        card.classList.toggle('equipped', type === equippedPrimary);
+      } else if (type === 'PISTOLS' || type === 'SHOTGUN') {
+        card.classList.toggle('equipped', type === equippedSecondary);
+      } else if (type === 'KARAMBIT' || type === 'FISTS') {
+        card.classList.toggle('equipped', type === equippedMelee);
+      }
+    });
+  } else {
+    weaponMenu.classList.add('hidden');
+    if (!document.pointerLockElement && !settingsOpen) {
+      renderer.domElement.requestPointerLock();
+    }
+  }
+}
+
+// Bind card clicks
+weaponMenu.querySelectorAll('.weapon-card').forEach(card => {
+  card.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const type = card.getAttribute('data-weapon');
+    player.switchWeapon(type);
+    if (type === 'RIFLE') {
+      showNotif(`Slot 1: ASSAULT RIFLE 장착`, 'purple');
+    } else if (type === 'SNIPER') {
+      showNotif(`Slot 1: SNIPER RIFLE 장착`, 'orange');
+    } else if (type === 'PISTOLS') {
+      showNotif(`Slot 2: DUAL PISTOLS 장착`, 'green');
+    } else if (type === 'SHOTGUN') {
+      showNotif(`Slot 2: SHOTGUN 장착`, 'yellow');
+    } else if (type === 'KARAMBIT') {
+      showNotif(`Slot 3: KARAMBIT KNIFE 장착`, 'orange');
+    } else if (type === 'FISTS') {
+      showNotif(`Slot 3: ROBLOX FISTS 장착`, 'red');
+    }
+    toggleWeaponMenu(false);
+  });
+});
+
 addGameListener(document.getElementById('lock-btn'), 'click', () => {
   renderer.domElement.requestPointerLock();
 });
+
 addGameListener(document, 'pointerlockchange', () => {
   if (!document.pointerLockElement) {
     player.stopFiring();
     player.stopAiming();
   }
-  if (!settingsOpen) {
+  if (!settingsOpen && !weaponMenuOpen) {
     lockScreen.classList.toggle('hidden', !!document.pointerLockElement);
   }
 });
+
 addGameListener(document, 'click', (e) => {
-  if (settingsOpen || e.target.closest('#settings')) return;
+  if (settingsOpen || e.target.closest('#settings') || weaponMenuOpen || e.target.closest('#weapon-menu')) return;
   if (!document.pointerLockElement) renderer.domElement.requestPointerLock();
 });
 
 // ── Weapon Firing & Aiming Inputs ────────────────────────────
 addGameListener(document, 'mousedown', (e) => {
-  if (!document.pointerLockElement || settingsOpen) return;
+  if (!document.pointerLockElement || settingsOpen || weaponMenuOpen) return;
   if (e.button === 0) {
     if (window.clickTimeout) clearTimeout(window.clickTimeout);
     window.shotSpawnCount = 0;
@@ -503,7 +626,7 @@ addGameListener(window, 'mouseup', (e) => {
 
 // Self-correcting safety guard on mousemove
 addGameListener(document, 'mousemove', (e) => {
-  if (document.pointerLockElement && !settingsOpen) {
+  if (document.pointerLockElement && !settingsOpen && !weaponMenuOpen) {
     // e.buttons is a bitmask: 1 = Left Click, 2 = Right Click
     if (player.isFiring && (e.buttons & 1) === 0) {
       player.stopFiring();
@@ -537,10 +660,20 @@ addGameListener(document, 'keydown', (e) => {
     settingsPanel.classList.toggle('visible', settingsOpen);
     
     if (settingsOpen) {
+      if (weaponMenuOpen) {
+        weaponMenuOpen = false;
+        weaponMenu.classList.add('hidden');
+      }
       if (document.pointerLockElement) document.exitPointerLock();
       lockScreen.classList.add('hidden');
     } else {
       if (!document.pointerLockElement) renderer.domElement.requestPointerLock();
+    }
+  }
+  if (e.code === 'KeyG') {
+    if (document.pointerLockElement || weaponMenuOpen) {
+      e.preventDefault();
+      toggleWeaponMenu();
     }
   }
   if (document.pointerLockElement) {
@@ -550,6 +683,24 @@ addGameListener(document, 'keydown', (e) => {
     if (e.code === 'KeyT') {
       player.reset();
       showNotif('🔄 RESET', 'orange');
+    }
+    if (e.code === 'Digit1') {
+      player.selectSlot(1);
+      const name = player.equippedPrimary === 'RIFLE' ? 'ASSAULT RIFLE' : 'SNIPER RIFLE';
+      const color = player.equippedPrimary === 'RIFLE' ? 'purple' : 'orange';
+      showNotif(`Slot 1: ${name} 장착`, color);
+    }
+    if (e.code === 'Digit2') {
+      player.selectSlot(2);
+      const name = player.equippedSecondary === 'PISTOLS' ? 'DUAL PISTOLS' : 'SHOTGUN';
+      const color = player.equippedSecondary === 'PISTOLS' ? 'green' : 'yellow';
+      showNotif(`Slot 2: ${name} 장착`, color);
+    }
+    if (e.code === 'Digit3') {
+      player.selectSlot(3);
+      const name = player.equippedMelee === 'KARAMBIT' ? 'KARAMBIT KNIFE' : 'ROBLOX FISTS';
+      const color = player.equippedMelee === 'KARAMBIT' ? 'orange' : 'red';
+      showNotif(`Slot 3: ${name} 장착`, color);
     }
   }
 });
@@ -651,6 +802,7 @@ function updateGrappleRaycast() {
 
 // ── Game Loop ────────────────────────────────────────────────
 let lastTime = performance.now();
+let lastSpeedOffset = 0;
 
 function loop(now) {
   window.activeLoops.add(myLoopId);
@@ -666,7 +818,15 @@ function loop(now) {
   // Grapple raycast (every frame for reticle feedback)
   updateGrappleRaycast();
 
-  // Movement
+  // Movement (Karambit Speed Boost: add +2.0 to base speeds WALK_SPEED and SPRINT_SPEED)
+  movCtrl.C.WALK_SPEED -= lastSpeedOffset;
+  movCtrl.C.SPRINT_SPEED -= lastSpeedOffset;
+
+  const speedOffset = (player.weapon.type === 'KARAMBIT' || player.weapon.type === 'FISTS') ? 2.0 : 0.0;
+  movCtrl.C.WALK_SPEED += speedOffset;
+  movCtrl.C.SPRINT_SPEED += speedOffset;
+  lastSpeedOffset = speedOffset;
+
   const physResult = {
     grounded:   player._lastGrounded ?? false,
     hitCeiling: false,
@@ -689,42 +849,194 @@ function loop(now) {
   if (finalPhys.didShoot) {
     const camWorldPos = new THREE.Vector3();
     fpsCam.camera.getWorldPosition(camWorldPos);
-    const lookDir = fpsCam.getLookDir();
     
-    // Start tracer exactly at muzzle flash tip of 3D gun mesh
-    const startPos = new THREE.Vector3();
-    if (player.weapon && player.weapon.muzzleFlash) {
-      player.weapon.muzzleFlash.getWorldPosition(startPos);
-    } else {
-      startPos.copy(camWorldPos);
+    let lookDir = fpsCam.getLookDir();
+    
+    // Hipfire random spread for Sniper Rifle
+    if (player.weapon.type === 'SNIPER' && !player.weapon.isAiming) {
+      const spreadVal = 0.12;
+      const offset = new THREE.Vector3(
+        (Math.random() - 0.5) * spreadVal,
+        (Math.random() - 0.5) * spreadVal,
+        (Math.random() - 0.5) * spreadVal
+      );
+      lookDir.add(offset).normalize();
     }
     
-    // Raycast from camera's actual rendering position (where screen crosshair aligns)
-    const hitResult = phys.raycast(camWorldPos.x, camWorldPos.y, camWorldPos.z, lookDir.x, lookDir.y, lookDir.z, 250);
-    const endPos = new THREE.Vector3();
-    
-    if (hitResult) {
-      endPos.set(hitResult.point.x, hitResult.point.y, hitResult.point.z);
-      
-      // Check target hit
-      const hitTarget = targets.find(t => t.active && t.aabb === hitResult.col);
+    if (player.weapon.type === 'KARAMBIT' || player.weapon.type === 'FISTS') {
+      // Melee attack: range 4.0m, no tracer
+      let hitResult = phys.raycast(camWorldPos.x, camWorldPos.y, camWorldPos.z, lookDir.x, lookDir.y, lookDir.z, 4.0);
+      let hitTarget = null;
+      let hitPoint = null;
+
+      if (hitResult) {
+        hitTarget = targets.find(t => t.active && t.aabb === hitResult.col);
+        if (hitTarget) {
+          hitPoint = hitResult.point;
+        }
+      }
+
+      // Proximity-based hit registration for targets in front of the player (if raycast missed)
+      if (!hitTarget) {
+        let closestDist = Infinity;
+        for (const t of targets) {
+          if (!t.active) continue;
+          const toTarget = new THREE.Vector3(t.x, t.y, t.z).sub(camWorldPos);
+          const dist = toTarget.length();
+          // Within generous melee proximity range (5.5m)
+          if (dist <= 5.5) {
+            const dirToTarget = toTarget.clone().normalize();
+            const dot = lookDir.dot(dirToTarget);
+            // Must be in front (dot > 0.3 allows about a 145-degree cone)
+            if (dot > 0.3 && dist < closestDist) {
+              closestDist = dist;
+              hitTarget = t;
+              hitPoint = new THREE.Vector3(t.x, t.y, t.z); // use target center as hitpoint indicator
+            }
+          }
+        }
+      }
+
       if (hitTarget) {
         hitTarget.destroy();
-        spawnHitIndicator(hitResult.point);
+        spawnHitIndicator(hitPoint || new THREE.Vector3(hitTarget.x, hitTarget.y, hitTarget.z));
         
         const crosshair = document.getElementById('crosshair');
         if (crosshair) {
           crosshair.classList.add('hit');
           if (crosshair.hitTimeout) clearTimeout(crosshair.hitTimeout);
-          crosshair.hitTimeout = setTimeout(() => {
-            crosshair.classList.remove('hit');
-          }, 100);
+          crosshair.hitTimeout = setTimeout(() => crosshair.classList.remove('hit'), 100);
         }
       }
+    } else if (player.weapon.type === 'SHOTGUN') {
+      // SHOTGUN: 8-pellet spread
+      const pelletCount = 8;
+      const spreadVal = 0.08;
+      const startPos = new THREE.Vector3();
+      if (player.weapon && player.weapon.muzzleFlash && !player.weapon.isAiming) {
+        player.weapon.muzzleFlash.getWorldPosition(startPos);
+      } else {
+        startPos.copy(camWorldPos);
+      }
+      
+      let hitAny = false;
+      const hitsThisShot = new Set();
+      
+      for (let i = 0; i < pelletCount; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const r = Math.random() * spreadVal;
+        
+        const upVec = new THREE.Vector3(0, 1, 0);
+        const rightVec = new THREE.Vector3().crossVectors(lookDir, upVec).normalize();
+        const localUpVec = new THREE.Vector3().crossVectors(rightVec, lookDir).normalize();
+        
+        const pelletDir = lookDir.clone()
+          .addScaledVector(rightVec, Math.cos(theta) * r)
+          .addScaledVector(localUpVec, Math.sin(theta) * r)
+          .normalize();
+
+        const hitResult = phys.raycast(camWorldPos.x, camWorldPos.y, camWorldPos.z, pelletDir.x, pelletDir.y, pelletDir.z, 150);
+        const endPos = new THREE.Vector3();
+        
+        if (hitResult) {
+          endPos.set(hitResult.point.x, hitResult.point.y, hitResult.point.z);
+          const hitTarget = targets.find(t => t.active && t.aabb === hitResult.col);
+          if (hitTarget && !hitsThisShot.has(hitTarget)) {
+            hitTarget.destroy();
+            spawnHitIndicator(hitResult.point);
+            hitsThisShot.add(hitTarget);
+            hitAny = true;
+          }
+        } else {
+          endPos.copy(camWorldPos).addScaledVector(pelletDir, 75);
+        }
+        
+        spawnTracer(startPos, endPos, 'SHOTGUN');
+      }
+      
+      if (hitAny) {
+        const crosshair = document.getElementById('crosshair');
+        if (crosshair) {
+          crosshair.classList.add('hit');
+          if (crosshair.hitTimeout) clearTimeout(crosshair.hitTimeout);
+          crosshair.hitTimeout = setTimeout(() => crosshair.classList.remove('hit'), 100);
+        }
+      }
+    } else if (player.weapon.type === 'SNIPER') {
+      // Sniper rifle target penetration!
+      const hits = phys.raycastAll(camWorldPos.x, camWorldPos.y, camWorldPos.z, lookDir.x, lookDir.y, lookDir.z, 250);
+      const startPos = new THREE.Vector3();
+      if (player.weapon && player.weapon.muzzleFlash && !player.weapon.isAiming) {
+        player.weapon.muzzleFlash.getWorldPosition(startPos);
+      } else {
+        startPos.copy(camWorldPos);
+      }
+      
+      let endPos = new THREE.Vector3().copy(camWorldPos).addScaledVector(lookDir, 150);
+      let hitAny = false;
+
+      for (const hit of hits) {
+        const hitTarget = targets.find(t => t.active && t.aabb === hit.col);
+        if (hitTarget) {
+          hitTarget.destroy();
+          spawnHitIndicator(hit.point);
+          hitAny = true;
+        } else {
+          // If we hit solid level geometry, stop bullet penetration and set tracer end here!
+          endPos.set(hit.point.x, hit.point.y, hit.point.z);
+          break;
+        }
+      }
+      
+      if (hitAny) {
+        const crosshair = document.getElementById('crosshair');
+        if (crosshair) {
+          crosshair.classList.add('hit');
+          if (crosshair.hitTimeout) clearTimeout(crosshair.hitTimeout);
+          crosshair.hitTimeout = setTimeout(() => crosshair.classList.remove('hit'), 100);
+        }
+      }
+      
+      spawnTracer(startPos, endPos, 'SNIPER');
     } else {
-      endPos.copy(camWorldPos).addScaledVector(lookDir, 150);
+      // Regular weapon shooting (Assault Rifle, Pistols)
+      const startPos = new THREE.Vector3();
+      if (player.weapon.type === 'PISTOLS') {
+        if (player.weapon.lastFiredLeft && player.weapon.leftMuzzleFlash) {
+          player.weapon.leftMuzzleFlash.getWorldPosition(startPos);
+        } else if (!player.weapon.lastFiredLeft && player.weapon.rightMuzzleFlash) {
+          player.weapon.rightMuzzleFlash.getWorldPosition(startPos);
+        } else {
+          startPos.copy(camWorldPos);
+        }
+      } else if (player.weapon && player.weapon.muzzleFlash && !player.weapon.isAiming) {
+        player.weapon.muzzleFlash.getWorldPosition(startPos);
+      } else {
+        startPos.copy(camWorldPos);
+      }
+
+      const hitResult = phys.raycast(camWorldPos.x, camWorldPos.y, camWorldPos.z, lookDir.x, lookDir.y, lookDir.z, 250);
+      const endPos = new THREE.Vector3();
+      
+      if (hitResult) {
+        endPos.set(hitResult.point.x, hitResult.point.y, hitResult.point.z);
+        const hitTarget = targets.find(t => t.active && t.aabb === hitResult.col);
+        if (hitTarget) {
+          hitTarget.destroy();
+          spawnHitIndicator(hitResult.point);
+          
+          const crosshair = document.getElementById('crosshair');
+          if (crosshair) {
+            crosshair.classList.add('hit');
+            if (crosshair.hitTimeout) clearTimeout(crosshair.hitTimeout);
+            crosshair.hitTimeout = setTimeout(() => crosshair.classList.remove('hit'), 100);
+          }
+        }
+      } else {
+        endPos.copy(camWorldPos).addScaledVector(lookDir, 150);
+      }
+      spawnTracer(startPos, endPos, player.weapon.type);
     }
-    spawnTracer(startPos, endPos);
   }
 
   // Update tracers

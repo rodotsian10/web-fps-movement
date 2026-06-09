@@ -69,8 +69,8 @@ export class FPSCamera {
 
   setGrappleZoom(active) { this.grappleZoomFov = active ? 6 : 0; }
 
-  setADS(active) {
-    this.targetAdsZoom = active ? 25 : 0;
+  setADS(active, zoomValue = 25) {
+    this.targetAdsZoom = active ? zoomValue : 0;
   }
 
   updateBob(speed, isGrounded, dt) {

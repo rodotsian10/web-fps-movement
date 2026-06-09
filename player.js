@@ -25,7 +25,20 @@ export class Player {
     this.prevVY     = 0;
     this._lastGrounded = false;
 
-    this.weapon = new Weapon(fpsCam);
+    this.weapons = [
+      new Weapon(fpsCam, 'RIFLE'),
+      new Weapon(fpsCam, 'SNIPER'),
+      new Weapon(fpsCam, 'PISTOLS'),
+      new Weapon(fpsCam, 'SHOTGUN'),
+      new Weapon(fpsCam, 'KARAMBIT'),
+      new Weapon(fpsCam, 'FISTS')
+    ];
+    this.currentWeaponIndex = 0;
+    this.equippedPrimary = 'RIFLE';
+    this.equippedSecondary = 'PISTOLS';
+    this.equippedMelee = 'KARAMBIT';
+    this.activeSlot = 1;
+    this.weapon = this.weapons[this.currentWeaponIndex];
 
     // Grapple line visual
     this.grappleLine = null;
@@ -64,7 +77,77 @@ export class Player {
     this.mov.dashCooldown = 0;
     this.grappleLine.visible = false;
 
-    this.weapon.reset();
+    this.equippedPrimary = 'RIFLE';
+    this.equippedSecondary = 'PISTOLS';
+    this.equippedMelee = 'KARAMBIT';
+    this.activeSlot = 1;
+
+    this.weapons.forEach((w) => {
+      w.reset();
+    });
+    this._updateActiveWeapon();
+  }
+
+  switchWeapon(type) {
+    if (type === 'RIFLE' || type === 'SNIPER') {
+      this.setPrimary(type);
+      this.selectSlot(1);
+    } else if (type === 'PISTOLS' || type === 'SHOTGUN') {
+      this.setSecondary(type);
+      this.selectSlot(2);
+    } else if (type === 'KARAMBIT' || type === 'FISTS') {
+      this.setMelee(type);
+      this.selectSlot(3);
+    }
+  }
+
+  selectSlot(slot) {
+    if (slot < 1 || slot > 3) return;
+    this.activeSlot = slot;
+    this._updateActiveWeapon();
+  }
+
+  setPrimary(type) {
+    if (type !== 'RIFLE' && type !== 'SNIPER') return;
+    this.equippedPrimary = type;
+    if (this.activeSlot === 1) {
+      this._updateActiveWeapon();
+    }
+  }
+
+  setSecondary(type) {
+    if (type !== 'PISTOLS' && type !== 'SHOTGUN') return;
+    this.equippedSecondary = type;
+    if (this.activeSlot === 2) {
+      this._updateActiveWeapon();
+    }
+  }
+
+  setMelee(type) {
+    if (type !== 'KARAMBIT' && type !== 'FISTS') return;
+    this.equippedMelee = type;
+    if (this.activeSlot === 3) {
+      this._updateActiveWeapon();
+    }
+  }
+
+  _updateActiveWeapon() {
+    let targetType = 'RIFLE';
+    if (this.activeSlot === 1) {
+      targetType = this.equippedPrimary;
+    } else if (this.activeSlot === 2) {
+      targetType = this.equippedSecondary;
+    } else {
+      targetType = this.equippedMelee;
+    }
+
+    this.weapons.forEach((w) => {
+      const active = (w.type === targetType);
+      w.setActive(active);
+      if (active) {
+        this.weapon = w;
+      }
+    });
   }
 
   startFiring() { this.weapon.startFiring(); }

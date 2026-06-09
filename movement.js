@@ -38,7 +38,7 @@ export const CONSTANTS = {
   SLIDE_ENTRY_BOOST:    1.15,    // 15% speed boost on slide entry
   SLIDE_FRICTION:       0.25,    // very low friction for momentum preservation
   SLIDE_SPEED_MIN:      9.0,     // end slide when speed drops below WALK_SPEED (9.0)
-  SLIDE_MAX_SPEED:      19.0,
+  SLIDE_MAX_SPEED:      21.0,
   SLIDE_DURATION:       0.8,
 
   // ── Slide Cancel (slide → jump)

@@ -16,6 +16,14 @@
 <div id="speedlines"></div>
 <div id="landing-flash"></div>
 
+<!-- Sniper Scope Overlay -->
+<div id="sniper-scope-overlay">
+  <div class="scope-ring">
+    <div class="scope-crosshairs"></div>
+    <div class="scope-lens-reflection"></div>
+  </div>
+</div>
+
 <!-- Crosshair + Grapple reticle -->
 <div id="crosshair">
   <div id="hitmarker"></div>
@@ -36,14 +44,180 @@
     <div class="ctrl-item"><span class="ctrl-key">Q</span> 대쉬</div>
     <div class="ctrl-item"><span class="ctrl-key">E</span> 그래플</div>
     <div class="ctrl-item" style="grid-column:1/-1; text-align:center; color:#8b98b0;">
-      <span class="ctrl-key">좌클릭</span> 사격 &nbsp;|&nbsp; <span class="ctrl-key">우클릭</span> 조준 &nbsp;|&nbsp; <span class="ctrl-key">R</span> 재장전
+      <span class="ctrl-key">좌클릭</span> 사격 &nbsp;|&nbsp; <span class="ctrl-key">우클릭</span> 조준 &nbsp;|&nbsp; <span class="ctrl-key">R</span> 재장전 &nbsp;|&nbsp; <span class="ctrl-key">G</span> 무기 선택
     </div>
     <div class="ctrl-item" style="grid-column:1/-1; text-align:center; color:#8b98b0;">
       콤보: 그래플→대쉬 | 대쉬→슬라이드캔슬 | 슬라이드캔슬 점프
     </div>
     <div class="ctrl-item" style="grid-column:1/-1; text-align:center; color:#506080; font-size:0.65rem;">
-      T = 리셋 &nbsp;|&nbsp; Tab = 수치 조절 &nbsp;|&nbsp; ESC = 마우스 해제
+      T = 리셋 &nbsp;|&nbsp; Tab = 수치 조절 &nbsp;|&nbsp; G = 무기 선택 &nbsp;|&nbsp; ESC = 마우스 해제
     </div>
+  </div>
+</div>
+
+<!-- Weapon Selector Menu -->
+<div id="weapon-menu" class="hidden">
+  <div class="weapon-menu-container">
+    <h2>무기 로드아웃 설정 (LOADOUT SELECTOR)</h2>
+    
+    <div class="loadout-sections">
+      <!-- SLOT 1: PRIMARY WEAPON -->
+      <div class="loadout-section">
+        <div class="slot-title">주무기 (1번 슬롯)</div>
+        <div class="weapon-cards">
+          <div class="weapon-card" data-weapon="RIFLE">
+            <div class="equipped-tag">장착됨</div>
+            <div class="weapon-card-glow"></div>
+            <div class="weapon-card-content">
+              <div class="weapon-card-title">ASSAULT RIFLE</div>
+              <div class="weapon-card-desc">신속한 연사력과 안정적인 반동의 표준 소총</div>
+              <div class="weapon-stats">
+                <div class="stat-row">
+                  <span class="stat-label">데미지</span>
+                  <span class="stat-bar"><span class="bar-fill" style="width: 50%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">연사속도</span>
+                  <span class="stat-bar"><span class="bar-fill" style="width: 80%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">탄창수</span>
+                  <span class="stat-val">30 / 120</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="weapon-card" data-weapon="SNIPER">
+            <div class="equipped-tag">장착됨</div>
+            <div class="weapon-card-glow"></div>
+            <div class="weapon-card-content">
+              <div class="weapon-card-title">SNIPER RIFLE</div>
+              <div class="weapon-card-desc">강력한 한 방, 높은 확대율의 고정밀 저격총</div>
+              <div class="weapon-stats">
+                <div class="stat-row">
+                  <span class="stat-label">데미지</span>
+                  <span class="stat-bar"><span class="bar-fill sniper" style="width: 100%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">연사속도</span>
+                  <span class="stat-bar"><span class="bar-fill sniper" style="width: 12%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">탄창수</span>
+                  <span class="stat-val">5 / 30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLOT 2: SECONDARY WEAPON -->
+      <div class="loadout-section">
+        <div class="slot-title">보조무기 (2번 슬롯)</div>
+        <div class="weapon-cards">
+          <div class="weapon-card" data-weapon="PISTOLS">
+            <div class="equipped-tag">장착됨</div>
+            <div class="weapon-card-glow"></div>
+            <div class="weapon-card-content">
+              <div class="weapon-card-title">DUAL PISTOLS</div>
+              <div class="weapon-card-desc">양손 사격으로 빠르게 화력을 쏟아붓는 쌍권총</div>
+              <div class="weapon-stats">
+                <div class="stat-row">
+                  <span class="stat-label">데미지</span>
+                  <span class="stat-bar"><span class="bar-fill pistols" style="width: 35%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">연사속도</span>
+                  <span class="stat-bar"><span class="bar-fill pistols" style="width: 90%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">탄창수</span>
+                  <span class="stat-val">24 / ∞</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="weapon-card" data-weapon="SHOTGUN">
+            <div class="equipped-tag">장착됨</div>
+            <div class="weapon-card-glow"></div>
+            <div class="weapon-card-content">
+              <div class="weapon-card-title">SHOTGUN</div>
+              <div class="weapon-card-desc">근거리에서 치명적인 피해를 주는 8발 산탄총</div>
+              <div class="weapon-stats">
+                <div class="stat-row">
+                  <span class="stat-label">데미지</span>
+                  <span class="stat-bar"><span class="bar-fill shotgun" style="width: 85%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">연사속도</span>
+                  <span class="stat-bar"><span class="bar-fill shotgun" style="width: 25%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">탄창수</span>
+                  <span class="stat-val">2 / 32</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLOT 3: MELEE WEAPON -->
+      <div class="loadout-section">
+        <div class="slot-title">근접무기 (3번 슬롯)</div>
+        <div class="weapon-cards">
+          <div class="weapon-card" data-weapon="KARAMBIT">
+            <div class="equipped-tag">장착됨</div>
+            <div class="weapon-card-glow"></div>
+            <div class="weapon-card-content">
+              <div class="weapon-card-title">KARAMBIT KNIFE</div>
+              <div class="weapon-card-desc">근접 처치 및 검사 회전 모션이 있는 카람빗 단검</div>
+              <div class="weapon-stats">
+                <div class="stat-row">
+                  <span class="stat-label">데미지</span>
+                  <span class="stat-bar"><span class="bar-fill karambit" style="width: 95%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">공격속도</span>
+                  <span class="stat-bar"><span class="bar-fill karambit" style="width: 65%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">탄창수</span>
+                  <span class="stat-val">무한</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="weapon-card" data-weapon="FISTS">
+            <div class="equipped-tag">장착됨</div>
+            <div class="weapon-card-glow"></div>
+            <div class="weapon-card-content">
+              <div class="weapon-card-title">ROBLOX FISTS</div>
+              <div class="weapon-card-desc">원투 연속 타격을 날리는 로블록스 스타일 주먹</div>
+              <div class="weapon-stats">
+                <div class="stat-row">
+                  <span class="stat-label">데미지</span>
+                  <span class="stat-bar"><span class="bar-fill fists" style="width: 60%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">공격속도</span>
+                  <span class="stat-bar"><span class="bar-fill fists" style="width: 95%;"></span></span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">탄창수</span>
+                  <span class="stat-val">무한</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="weapon-menu-hint">G키 또는 무기를 선택하면 게임으로 돌아갑니다 (숫자키 1, 2, 3으로 무기 스왑 가능)</div>
   </div>
 </div>
 
@@ -51,6 +225,7 @@
 <div id="hud">
   <!-- Ammo Display -->
   <div id="ammo-display">
+    <div id="weapon-label">RIFLE</div>
     <div id="ammo-nums"><span id="ammo-clip">30</span><span id="ammo-slash">/</span><span id="ammo-reserve">120</span></div>
     <div id="reload-indicator">RELOADING</div>
   </div>

@@ -427,3 +427,411 @@ body {
   0% { opacity: 0.4; }
   100% { opacity: 1; }
 }
+
+/* ===== WEAPON SELECTOR MENU ===== */
+#weapon-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(10, 15, 30, 0.88) 0%, rgba(5, 8, 16, 0.96) 100%);
+  backdrop-filter: blur(14px);
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+#weapon-menu.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+.weapon-menu-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  max-width: 900px;
+  width: 95%;
+  transform: scale(0.95);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#weapon-menu:not(.hidden) .weapon-menu-container {
+  transform: scale(1);
+}
+.weapon-menu-container h2 {
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+}
+.loadout-sections {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .loadout-sections {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+.loadout-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.slot-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border-left: 2px solid var(--accent);
+  padding-left: 8px;
+  margin-bottom: 0.1rem;
+}
+.side-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.side-slot-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.static-card {
+  cursor: default !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+.static-card:hover {
+  transform: none !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  background: rgba(10, 18, 36, 0.6) !important;
+}
+.equipped-tag {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transition: opacity 0.2s;
+  text-transform: uppercase;
+}
+.weapon-card[data-weapon="SNIPER"] .equipped-tag {
+  background: var(--accent2);
+}
+.weapon-card[data-weapon="PISTOLS"] .equipped-tag {
+  background: var(--green);
+}
+.weapon-card[data-weapon="SHOTGUN"] .equipped-tag {
+  background: #facc15;
+  color: #000;
+}
+.weapon-card[data-weapon="KARAMBIT"] .equipped-tag {
+  background: var(--accent3);
+  color: #fff;
+}
+.weapon-card[data-weapon="FISTS"] .equipped-tag {
+  background: #ff0055;
+  color: #fff;
+}
+.weapon-card.equipped .equipped-tag,
+.weapon-card.static-card .equipped-tag {
+  opacity: 1;
+}
+.weapon-card.equipped {
+  border-color: var(--accent);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+  background: rgba(10, 30, 60, 0.7);
+}
+.weapon-card[data-weapon="SNIPER"].equipped {
+  border-color: #ff6b35;
+  box-shadow: 0 0 25px rgba(255, 107, 53, 0.25);
+  background: rgba(60, 24, 10, 0.7);
+}
+.weapon-card[data-weapon="PISTOLS"].equipped {
+  border-color: #22c55e;
+  box-shadow: 0 0 25px rgba(34, 197, 94, 0.25);
+  background: rgba(10, 60, 30, 0.7);
+}
+.weapon-card[data-weapon="SHOTGUN"].equipped {
+  border-color: #facc15;
+  box-shadow: 0 0 25px rgba(250, 204, 21, 0.25);
+  background: rgba(60, 50, 10, 0.7);
+}
+.weapon-card[data-weapon="FISTS"].equipped {
+  border-color: #ff0055;
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.25);
+  background: rgba(60, 10, 30, 0.7);
+}
+.weapon-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 100%;
+}
+.weapon-card {
+  position: relative;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 240, 255, 0.1);
+  background: rgba(10, 18, 36, 0.6);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.weapon-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+  background: rgba(15, 28, 54, 0.8);
+  box-shadow: 0 15px 40px rgba(0, 240, 255, 0.18);
+}
+.weapon-card.active {
+  border-color: var(--accent);
+  background: rgba(10, 30, 60, 0.7);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.25);
+}
+.weapon-card[data-weapon="SNIPER"]:hover {
+  border-color: #ff6b35;
+  box-shadow: 0 15px 40px rgba(255, 107, 53, 0.18);
+}
+.weapon-card[data-weapon="SNIPER"].active {
+  border-color: #ff6b35;
+  background: rgba(60, 24, 10, 0.7);
+  box-shadow: 0 0 30px rgba(255, 107, 53, 0.25);
+}
+.weapon-card[data-weapon="PISTOLS"]:hover {
+  border-color: #22c55e;
+  box-shadow: 0 15px 40px rgba(34, 197, 94, 0.18);
+}
+.weapon-card[data-weapon="PISTOLS"].active {
+  border-color: #22c55e;
+  background: rgba(10, 60, 30, 0.7);
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.25);
+}
+.weapon-card[data-weapon="SHOTGUN"]:hover {
+  border-color: #facc15;
+  box-shadow: 0 15px 40px rgba(250, 204, 21, 0.18);
+}
+.weapon-card[data-weapon="SHOTGUN"].active {
+  border-color: #facc15;
+  background: rgba(60, 50, 10, 0.7);
+  box-shadow: 0 0 30px rgba(250, 204, 21, 0.25);
+}
+.weapon-card[data-weapon="FISTS"]:hover {
+  border-color: #ff0055;
+  box-shadow: 0 15px 40px rgba(255, 0, 85, 0.18);
+}
+.weapon-card[data-weapon="FISTS"].active {
+  border-color: #ff0055;
+  background: rgba(60, 10, 30, 0.7);
+  box-shadow: 0 0 30px rgba(255, 0, 85, 0.25);
+}
+.weapon-card[data-weapon="KARAMBIT"]:hover {
+  border-color: #7c3aed;
+  box-shadow: 0 15px 40px rgba(124, 58, 237, 0.18);
+}
+.weapon-card[data-weapon="KARAMBIT"].active {
+  border-color: #7c3aed;
+  background: rgba(40, 10, 60, 0.7);
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.25);
+}
+.weapon-card-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% -20%, rgba(0, 240, 255, 0.2), transparent 60%);
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+.weapon-card[data-weapon="SNIPER"] .weapon-card-glow {
+  background: radial-gradient(circle at 50% -20%, rgba(255, 107, 53, 0.2), transparent 60%);
+}
+.weapon-card[data-weapon="PISTOLS"] .weapon-card-glow {
+  background: radial-gradient(circle at 50% -20%, rgba(34, 197, 94, 0.2), transparent 60%);
+}
+.weapon-card[data-weapon="SHOTGUN"] .weapon-card-glow {
+  background: radial-gradient(circle at 50% -20%, rgba(250, 204, 21, 0.2), transparent 60%);
+}
+.weapon-card[data-weapon="FISTS"] .weapon-card-glow {
+  background: radial-gradient(circle at 50% -20%, rgba(255, 0, 85, 0.2), transparent 60%);
+}
+.weapon-card[data-weapon="KARAMBIT"] .weapon-card-glow {
+  background: radial-gradient(circle at 50% -20%, rgba(124, 58, 237, 0.2), transparent 60%);
+}
+.weapon-card:hover .weapon-card-glow {
+  opacity: 1;
+}
+.weapon-card-content {
+  padding: 1.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  position: relative;
+  z-index: 2;
+}
+.weapon-card-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+.weapon-card-desc {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  height: 2.25rem;
+}
+.weapon-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 0.8rem;
+}
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+}
+.stat-label {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.stat-bar {
+  width: 90px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+}
+.bar-fill.sniper {
+  background: #ff6b35;
+}
+.bar-fill.pistols {
+  background: #22c55e;
+}
+.bar-fill.shotgun {
+  background: #facc15;
+}
+.bar-fill.karambit {
+  background: #7c3aed;
+}
+.bar-fill.fists {
+  background: #ff0055;
+}
+.stat-val {
+  font-family: var(--mono);
+  color: #ffffff;
+  font-size: 0.7rem;
+}
+.weapon-menu-hint {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  margin-top: 0.4rem;
+}
+
+/* ===== HUD WEAPON LABEL ===== */
+#weapon-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  margin-bottom: -4px;
+}
+
+/* ===== SNIPER SCOPE OVERLAY ===== */
+#sniper-scope-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s cubic-bezier(0.1, 0.9, 0.2, 1);
+  background: transparent;
+}
+#sniper-scope-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+.scope-ring {
+  position: relative;
+  width: 86vh;
+  height: 86vh;
+  max-width: 700px;
+  max-height: 700px;
+  border-radius: 50%;
+  border: 6px solid #060913;
+  box-shadow: 0 0 0 100vw #020408;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.3) 100%);
+}
+.scope-crosshairs {
+  position: absolute;
+  inset: 0;
+}
+.scope-crosshairs::before, .scope-crosshairs::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+}
+/* Center horizontal and vertical hair lines */
+.scope-crosshairs::before {
+  width: 100%;
+  height: 1px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+.scope-crosshairs::after {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+/* Lens Reflection Glows */
+.scope-lens-reflection {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(255, 107, 53, 0.02) 0%, transparent 40%);
+}
+
+/* Hide default crosshair when sniper scope is active */
+#sniper-scope-overlay.active ~ #crosshair {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+}
+
